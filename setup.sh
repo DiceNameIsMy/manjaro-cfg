@@ -39,6 +39,7 @@ sudo pacman -Syu
 sudo pamac install snapd libpamac-snap-plugin
 sudo systemctl enable --now snapd.socket
 sudo ln -s -f /var/lib/snapd/snap /snap
+sudo systemctl enable --now snapd.apparmor
 
 # Ask for enabling the AUR packages
 echo -e "${Green}Please enable using AUR packages by opening Add/Remove Software." \
