@@ -85,7 +85,7 @@ dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/cus
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
 # Super+Up => Maximize window
-dconf write org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
+dconf write /org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
 
 # Etc...
 dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
