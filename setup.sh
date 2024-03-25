@@ -43,8 +43,8 @@ sudo systemctl enable --now snapd.apparmor
 
 # Ask for enabling the AUR packages
 echo -e "${Green}Please enable using AUR packages by opening Add/Remove Software." \
-	"Navigate to the Preferences page -> Third Party, and enable AUR support." \
-	"Hit Enter when done.${NC}"
+	"\nNavigate to the Preferences page -> Third Party, and enable AUR support." \
+	"\nHit Enter when done.${NC}"
 read line > /dev/null
 
 # Install packages
@@ -69,12 +69,9 @@ if [[ "$configure_ssh" == "y" ]]; then
 fi
 
 # GNOME configuration
-dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
-dconf write /org/gnome/desktop/interface/enable-hot-corners "false"
-dconf write /org/gnome/shell/last-selected-power-profile "'performance'"
-dconf write /org/gnome/settings-daemon/plugins/power/power-saver-profile-on-low-battery "false"
-dconf write /org/gnome/settings-daemon/plugins/power/power-button-action "'interactive'"
-dconf write /org/gnome/desktop/peripherals/touchpad/tap-to-click "true"
+
+# Pinned apps
+dconf write /org/gnome/shell/favorite-apps "['google-chrome.desktop', 'obsidian_obsidian.desktop', 'org.gnome.Nautilus.desktop', 'code_code.desktop']"
 
 # Shortcut: Ctrl+Alt+T => terminal
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding "'<Control><Alt>t'"
@@ -82,13 +79,21 @@ dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/cus
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'terminal'"
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
+# Etc...
+dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
+dconf write /org/gnome/desktop/interface/enable-hot-corners "false"
+dconf write /org/gnome/shell/last-selected-power-profile "'performance'"
+dconf write /org/gnome/settings-daemon/plugins/power/power-saver-profile-on-low-battery "false"
+dconf write /org/gnome/settings-daemon/plugins/power/power-button-action "'interactive'"
+dconf write /org/gnome/desktop/peripherals/touchpad/tap-to-click "true"
+
 # Background image
 shared_img_folder="/home/${USER}/.local/share/background"
 shared_img_name="wallpaper_space_velvet.jpg"
 shared_img_path="${shared_img_folder}/${shared_img_name}"
 
+# Copy an image
 mkdir -p "$shared_img_folder"
-
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cp ${script_dir}/background/wallpaper_space_velvet.jpg ${shared_img_path}
 
@@ -98,5 +103,6 @@ dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_pa
 
 #
 
-echo -e "${Green}Setup is completed. Don't forget to add your SSH keys where needed!\n" \
-	"To configure wine, visit https://linuxconfig.org/install-wine-on-manjaro${NC}"
+echo -e "${Green}Setup is completed."\
+	"\nDon't forget to add your SSH keys where needed!" \
+	"\nTo configure wine, visit https://linuxconfig.org/install-wine-on-manjaro${NC}"
