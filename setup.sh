@@ -62,6 +62,7 @@ done
 
 echo -e "${Green}Packages has been successfully installed.${NC}"
 
+# SSH configuration
 configure_ssh=n
 read -p "Would you like to configure an SSH key? [y/n]:" configure_ssh
 if [[ "$configure_ssh" == "y" ]]; then
@@ -69,6 +70,10 @@ if [[ "$configure_ssh" == "y" ]]; then
 fi
 
 # GNOME configuration
+
+# Fonts
+sudo pamac install ttf-jetbrains-mono-nerd
+dconf write /org/gnome/desktop/interface/font-name "'JetBrainsMono Nerd Font 11'"
 
 # Pinned apps
 dconf write /org/gnome/shell/favorite-apps "['google-chrome.desktop', 'obsidian_obsidian.desktop', 'org.gnome.Nautilus.desktop', 'code_code.desktop']"
