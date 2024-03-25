@@ -48,7 +48,7 @@ echo -e "${Green}Please enable using AUR packages by opening Add/Remove Software
 read line > /dev/null
 
 # Install packages
-sudo pacman -Syu --needed ${pacman_pkgs}
+sudo pacman -Syu --needed ${pacman_pkgs[@]}
 
 sudo pamac install ${aur_pkgs[@]}
 
@@ -83,6 +83,9 @@ dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/cus
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command "'gnome-terminal'"
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'terminal'"
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+# Super+Up => Maximize window
+dconf write org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
 
 # Etc...
 dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
