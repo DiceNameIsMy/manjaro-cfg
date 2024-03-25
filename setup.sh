@@ -22,7 +22,7 @@ setup_ssh() {
 }
 
 # Packages to install
-pacman_pkgs=(git)
+pacman_pkgs=(wine winetricks wine-mono wine_gecko)
 classic_snap_pkgs=(obsidian code clion)
 snap_pkgs=(transmission)
 aur_pkgs=(libfido2 google-chrome)
@@ -98,4 +98,5 @@ dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_pa
 
 #
 
-echo -e "${Green}Setup is completed. Don't forget to add your SSH keys where needed!${NC}"
+echo -e "${Green}Setup is completed. Don't forget to add your SSH keys where needed!\n" \
+	"To configure wine, visit https://linuxconfig.org/install-wine-on-manjaro${NC}"
