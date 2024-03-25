@@ -57,7 +57,7 @@ for pkg in ${classic_snap_pkgs[@]}; do
 done
 
 for pkg in ${snap_pkgs[@]}; do
-        sudo snap install $pkg
+    sudo snap install $pkg
 done
 
 echo -e "${Green}Packages has been successfully installed.${NC}"
@@ -81,5 +81,21 @@ dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/cus
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command "'gnome-terminal'"
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'terminal'"
 dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+# Background image
+shared_img_folder="/home/${USER}/.local/share/background"
+shared_img_name="wallpaper_space_velvet.jpg"
+shared_img_path="${shared_img_folder}/${shared_img_name}"
+
+mkdir -p "$shared_img_folder"
+
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cp ${script_dir}/background/wallpaper_space_velvet.jpg ${shared_img_path}
+
+dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
+dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
+dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_path}'"
+
+#
 
 echo -e "${Green}Setup is completed. Don't forget to add your SSH keys where needed!${NC}"
