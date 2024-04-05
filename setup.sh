@@ -87,6 +87,12 @@ dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['
 # Super+Up => Maximize window
 dconf write /org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
 
+# Super+Tab => Switch windows (not Applications)
+dconf write /org/gnome/desktop/wm/keybindings/switch-applications "@as []"
+dconf write /org/gnome/desktop/wm/keybindings/switch-applications-backward "@as []"
+dconf write /org/gnome/desktop/wm/keybindings/switch-windows "['<Alt>Tab']"
+dconf write /org/gnome/desktop/wm/keybindings/switch-windows-backward "['<Shift><Alt>Tab']"
+
 # Etc...
 dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
 dconf write /org/gnome/desktop/interface/enable-hot-corners "false"
