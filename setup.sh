@@ -7,18 +7,73 @@ NC='\033[0m' # No Color
 set -e
 
 handle_error() {
-        echo -e "${Red}An error occured on line $1${NC}" >&2
-        exit 1
+	echo -e "${Red}An error occured on line $1${NC}" >&2
+	exit 1
 }
 
 trap 'handle_error $LINENO' ERR
 
-setup_ssh() {
+setup_git() {
+	local name=""
 	local email=""
+	read -p "Your name: " name
 	read -p "Your email: " email
+
 	ssh-keygen -t ed25519 -C "$email"
 
 	echo -e "${Green}An ssh key has been generated.${NC}"
+
+	# Git config
+	git config --global user.name "$name"
+	git config --global user.email "$email"
+}
+
+setup_gnome() {
+	# Fonts
+	sudo pamac install ttf-jetbrains-mono-nerd
+	dconf write /org/gnome/desktop/interface/font-name "'JetBrainsMono Nerd Font 11'"
+
+	# Pinned apps
+	dconf write /org/gnome/shell/favorite-apps "['google-chrome.desktop', 'obsidian_obsidian.desktop', 'org.gnome.Nautilus.desktop', 'code_code.desktop']"
+
+	# Shortcut: Ctrl+Alt+T => terminal
+	dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding "'<Control><Alt>t'"
+	dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command "'gnome-terminal'"
+	dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'terminal'"
+	dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+	# Super+Up => Maximize window
+	dconf write /org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
+
+	# Super+Tab => Switch windows (not Applications)
+	dconf write /org/gnome/desktop/wm/keybindings/switch-applications "@as []"
+	dconf write /org/gnome/desktop/wm/keybindings/switch-applications-backward "@as []"
+	dconf write /org/gnome/desktop/wm/keybindings/switch-windows "['<Alt>Tab']"
+	dconf write /org/gnome/desktop/wm/keybindings/switch-windows-backward "['<Shift><Alt>Tab']"
+
+	# Etc...
+	dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
+	dconf write /org/gnome/desktop/interface/enable-hot-corners "false"
+	dconf write /org/gnome/shell/last-selected-power-profile "'performance'"
+	dconf write /org/gnome/settings-daemon/plugins/power/power-saver-profile-on-low-battery "false"
+	dconf write /org/gnome/settings-daemon/plugins/power/power-button-action "'interactive'"
+	dconf write /org/gnome/desktop/peripherals/touchpad/tap-to-click "true"
+
+	# Background image
+	shared_img_folder="/home/${USER}/.local/share/background"
+	shared_img_name="wallpaper_space_velvet.jpg"
+	shared_img_path="${shared_img_folder}/${shared_img_name}"
+
+	# Copy an image
+	mkdir -p "$shared_img_folder"
+	script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+	cp ${script_dir}/background/wallpaper_space_velvet.jpg ${shared_img_path}
+
+	dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
+	dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
+	dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_path}'"
+
+	echo -e "${Green}GNOME Configuration has finished.${NC}"
 }
 
 # Packages to install
@@ -36,7 +91,7 @@ fi
 sudo pacman -Syu
 
 # Enable snapd
-sudo pamac install snapd libpamac-snap-plugin
+sudo pamac install base-devel snapd libpamac-snap-plugin
 sudo systemctl enable --now snapd.socket
 sudo ln -s -f /var/lib/snapd/snap /snap
 sudo systemctl enable --now snapd.apparmor
@@ -50,7 +105,9 @@ read line > /dev/null
 # Install packages
 sudo pacman -Syu --needed ${pacman_pkgs[@]}
 
-sudo pamac install ${aur_pkgs[@]}
+for pkg in ${aur_pkgs[@]}; do
+	sudo pamac install $pkg
+done
 
 for pkg in ${classic_snap_pkgs[@]}; do
 	sudo snap install $pkg --classic
@@ -63,58 +120,14 @@ done
 echo -e "${Green}Packages has been successfully installed.${NC}"
 
 # SSH configuration
-configure_ssh=n
-read -p "Would you like to configure an SSH key? [y/n]:" configure_ssh
-if [[ "$configure_ssh" == "y" ]]; then
-	setup_ssh
+configure_git=n
+read -p "Would you like to configure git with an SSH key? [y/n]:" configure_git
+if [[ "$configure_git" == "y" ]]; then
+	setup_git
 fi
 
 # GNOME configuration
-
-# Fonts
-sudo pamac install ttf-jetbrains-mono-nerd
-dconf write /org/gnome/desktop/interface/font-name "'JetBrainsMono Nerd Font 11'"
-
-# Pinned apps
-dconf write /org/gnome/shell/favorite-apps "['google-chrome.desktop', 'obsidian_obsidian.desktop', 'org.gnome.Nautilus.desktop', 'code_code.desktop']"
-
-# Shortcut: Ctrl+Alt+T => terminal
-dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding "'<Control><Alt>t'"
-dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command "'gnome-terminal'"
-dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'terminal'"
-dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
-
-# Super+Up => Maximize window
-dconf write /org/gnome/desktop/wm/keybindings/maximize "['<Super>Up']"
-
-# Super+Tab => Switch windows (not Applications)
-dconf write /org/gnome/desktop/wm/keybindings/switch-applications "@as []"
-dconf write /org/gnome/desktop/wm/keybindings/switch-applications-backward "@as []"
-dconf write /org/gnome/desktop/wm/keybindings/switch-windows "['<Alt>Tab']"
-dconf write /org/gnome/desktop/wm/keybindings/switch-windows-backward "['<Shift><Alt>Tab']"
-
-# Etc...
-dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
-dconf write /org/gnome/desktop/interface/enable-hot-corners "false"
-dconf write /org/gnome/shell/last-selected-power-profile "'performance'"
-dconf write /org/gnome/settings-daemon/plugins/power/power-saver-profile-on-low-battery "false"
-dconf write /org/gnome/settings-daemon/plugins/power/power-button-action "'interactive'"
-dconf write /org/gnome/desktop/peripherals/touchpad/tap-to-click "true"
-
-# Background image
-shared_img_folder="/home/${USER}/.local/share/background"
-shared_img_name="wallpaper_space_velvet.jpg"
-shared_img_path="${shared_img_folder}/${shared_img_name}"
-
-# Copy an image
-mkdir -p "$shared_img_folder"
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cp ${script_dir}/background/wallpaper_space_velvet.jpg ${shared_img_path}
-
-dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
-dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
-dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_path}'"
-
+setup_gnome
 #
 
 echo -e "${Green}Setup is completed."\
