@@ -79,7 +79,7 @@ setup_gnome() {
 # Packages to install
 pacman_pkgs=(wine winetricks wine-mono wine_gecko)
 classic_snap_pkgs=(obsidian code clion)
-snap_pkgs=(telegram-desktop transmission)
+snap_pkgs=(transmission)
 aur_pkgs=(libfido2 brave-browser)
 
 if [[ $USER == "root" ]]; then
