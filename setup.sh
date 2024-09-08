@@ -2,12 +2,12 @@
 
 Red='\033[0;31m'
 Green='\033[0;32m'
-NC='\033[0m' # No Color
+NoColor='\033[0m'
 
 set -e
 
 handle_error() {
-	echo -e "${Red}An error occured on line $1${NC}" >&2
+	echo -e "${Red}An error occured on line $1${NoColor}" >&2
 	exit 1
 }
 
@@ -21,7 +21,7 @@ setup_git() {
 
 	ssh-keygen -t ed25519 -C "$email"
 
-	echo -e "${Green}An ssh key has been generated.${NC}"
+	echo -e "${Green}An ssh key has been generated.${NoColor}"
 
 	# Git config
 	git config --global user.name "$name"
@@ -73,7 +73,7 @@ setup_gnome() {
 	dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
 	dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_path}'"
 
-	echo -e "${Green}GNOME Configuration has finished.${NC}"
+	echo -e "${Green}GNOME Configuration has finished.${NoColor}"
 }
 
 # Packages to install
@@ -83,7 +83,7 @@ snap_pkgs=(telegram-desktop transmission)
 aur_pkgs=(libfido2 brave-browser)
 
 if [[ $USER == "root" ]]; then
-	echo -e "${Red}Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!${NC}"
+	echo -e "${Red}Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!${NoColor}"
 	exit 1
 fi
 
@@ -99,7 +99,7 @@ sudo systemctl enable --now snapd.apparmor
 # Ask for enabling the AUR packages
 echo -e "${Green}Please enable using AUR packages by opening Add/Remove Software." \
 	"\nNavigate to the Preferences page -> Third Party, and enable AUR support." \
-	"\nHit Enter when done.${NC}"
+	"\nHit Enter when done.${NoColor}"
 read line > /dev/null
 
 # Install packages
@@ -117,7 +117,7 @@ for pkg in ${snap_pkgs[@]}; do
     sudo snap install $pkg
 done
 
-echo -e "${Green}Packages has been successfully installed.${NC}"
+echo -e "${Green}Packages has been successfully installed.${NoColor}"
 
 # SSH configuration
 configure_git=n
@@ -126,9 +126,20 @@ if [[ "$configure_git" == "y" ]]; then
 	setup_git
 fi
 
-# GNOME configuration
-setup_gnome
-#
+# Desktop environment configuration
+echo -e "${Green}Configuring the desktop environment${NC}"
+if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
+    echo -e "${Green}GNOME desktop detected."
+	
+	setup_gnome
+
+elif [[ "$XDG_CURRENT_DESKTOP" == "KDE" ]]; then
+    echo -e "${Green}KDE desktop detected.${NoColor}"
+
+	echo -e "${Green}Nothing to configure.${NoColor}"
+else
+    echo -e "${Red}Unknown desktop environment. Skipping.${NoColor}"
+fi
 
 echo -e "${Green}Setup is completed."\
 	"\nDon't forget to add your SSH keys where needed!" \
