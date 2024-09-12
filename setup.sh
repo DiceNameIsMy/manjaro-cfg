@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Packages to install
-readonly PACMAN_PKGS=(wine winetricks wine-mono wine_gecko)
+readonly PACMAN_PKGS=(wine winetricks wine-mono wine_gecko shellcheck)
 readonly CLASSIC_SNAP_PKGS=(obsidian code clion bash-language-server)
 readonly SNAP_PKGS=(transmission)
 readonly AUR_PKGS=(libfido2 brave-browser)
@@ -9,7 +9,8 @@ readonly AUR_PKGS=(libfido2 brave-browser)
 readonly Red='\033[0;31m'
 readonly Green='\033[0;32m'
 readonly NoColor='\033[0m'
-readonly SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 set -e
 
@@ -41,20 +42,20 @@ setup_packages() {
 	# Ask for enabling the AUR packages
     log_info "Please enable AUR packages in Add/Remove Software."
     log_info "Navigate to Preferences -> Third Party, and enable AUR support."
-	read -p "Press Enter when done..."
+	read -pr "Press Enter when done..."
 
 	# Install packages
-	sudo pacman -Syu --needed ${PACMAN_PKGS[@]}
+	sudo pacman -Syu --needed "${PACMAN_PKGS[@]}"
 
-	for pkg in ${AUR_PKGS[@]}; do
+	for pkg in "${AUR_PKGS[@]}"; do
 		sudo pamac build "$pkg"
 	done
 
-	for pkg in ${CLASSIC_SNAP_PKGS[@]}; do
+	for pkg in "${CLASSIC_SNAP_PKGS[@]}"; do
 		sudo snap install "$pkg" --classic
 	done
 
-	for pkg in ${SNAP_PKGS[@]}; do
+	for pkg in "${SNAP_PKGS[@]}"; do
 		sudo snap install "$pkg"
 	done
 
@@ -63,15 +64,15 @@ setup_packages() {
 
 setup_git() {
 	configure_git=n
-    read -p "Would you like to configure git with an SSH key? [y/n]:" configure_git
+    read -pr "Would you like to configure git with an SSH key? [y/n]:" configure_git
     if [[ "$configure_git" != "y" ]]; then
 		return
     fi
 
 	local name=""
 	local email=""
-	read -p "Your name: " name
-	read -p "Your email: " email
+	read -pr "Your name: " name
+	read -pr "Your email: " email
 
 	ssh-keygen -t ed25519 -C "$email"
 
@@ -123,7 +124,7 @@ setup_gnome() {
 
 	# Copy an image
 	mkdir -p "$shared_img_folder"
-	cp ${SCRIPT_DIR}/background/wallpaper_space_velvet.jpg ${shared_img_path}
+	cp "${SCRIPT_DIR}"/background/wallpaper_space_velvet.jpg "${shared_img_path}"
 
 	dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
 	dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
@@ -139,7 +140,7 @@ setup_kde() {
 
 	# Copy an image
 	mkdir -p "$wallpapers_folder"
-	cp ${SCRIPT_DIR}/background/${wallpaper_name} ${wallpaper_path}
+	cp "${SCRIPT_DIR}"/background/${wallpaper_name} "${wallpaper_path}"
 
 config_script=$(cat <<EOF
 	var allDesktops = desktops();
