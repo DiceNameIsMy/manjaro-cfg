@@ -9,6 +9,7 @@ readonly AUR_PKGS=(libfido2 brave-browser)
 readonly Red='\033[0;31m'
 readonly Green='\033[0;32m'
 readonly NoColor='\033[0m'
+readonly SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 set -e
 
@@ -26,6 +27,39 @@ handle_error() {
 }
 
 trap 'handle_error $LINENO' ERR
+
+setup_packages() {
+	log_info "Updating system..."
+	sudo pacman -Syu
+
+	log_info "Enabling snapd..."
+	sudo pamac install base-devel snapd libpamac-snap-plugin
+	sudo systemctl enable --now snapd.socket
+	sudo ln -s -f /var/lib/snapd/snap /snap
+	sudo systemctl enable --now snapd.apparmor
+
+	# Ask for enabling the AUR packages
+    log_info "Please enable AUR packages in Add/Remove Software."
+    log_info "Navigate to Preferences -> Third Party, and enable AUR support."
+	read -p "Press Enter when done..."
+
+	# Install packages
+	sudo pacman -Syu --needed ${PACMAN_PKGS[@]}
+
+	for pkg in ${AUR_PKGS[@]}; do
+		sudo pamac build "$pkg"
+	done
+
+	for pkg in ${CLASSIC_SNAP_PKGS[@]}; do
+		sudo snap install "$pkg" --classic
+	done
+
+	for pkg in ${SNAP_PKGS[@]}; do
+		sudo snap install "$pkg"
+	done
+
+	log_info "Packages has been successfully installed."
+}
 
 setup_git() {
 	configure_git=n
@@ -48,9 +82,10 @@ setup_git() {
 	git config --global user.email "$email"
 }
 
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 setup_gnome() {
+	# WARNING: Might be outdated
+
 	# Fonts
 	sudo pamac install ttf-jetbrains-mono-nerd
 	dconf write /org/gnome/desktop/interface/font-name "'JetBrainsMono Nerd Font 11'"
@@ -98,7 +133,6 @@ setup_gnome() {
 }
 
 setup_kde() {
-	# Background image
 	wallpapers_folder="/home/${USER}/.local/share/background"
 	wallpaper_name="wallpaper_space_velvet.jpg"
 	wallpaper_path="${wallpapers_folder}/${wallpaper_name}"
@@ -121,39 +155,6 @@ EOF
 	qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "${config_script}"
 
 	log_info "KDE Configuration has finished."
-}
-
-setup_packages() {
-	log_info "Updating system..."
-	sudo pacman -Syu
-
-	log_info "Enabling snapd..."
-	sudo pamac install base-devel snapd libpamac-snap-plugin
-	sudo systemctl enable --now snapd.socket
-	sudo ln -s -f /var/lib/snapd/snap /snap
-	sudo systemctl enable --now snapd.apparmor
-
-	# Ask for enabling the AUR packages
-    log_info "Please enable AUR packages in Add/Remove Software."
-    log_info "Navigate to Preferences -> Third Party, and enable AUR support."
-	read -p "Press Enter when done..."
-
-	# Install packages
-	sudo pacman -Syu --needed ${PACMAN_PKGS[@]}
-
-	for pkg in ${AUR_PKGS[@]}; do
-		sudo pamac build "$pkg"
-	done
-
-	for pkg in ${CLASSIC_SNAP_PKGS[@]}; do
-		sudo snap install "$pkg" --classic
-	done
-
-	for pkg in ${SNAP_PKGS[@]}; do
-		sudo snap install "$pkg"
-	done
-
-	log_info "Packages has been successfully installed."
 }
 
 setup_gui() {
