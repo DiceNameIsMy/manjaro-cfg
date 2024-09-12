@@ -1,19 +1,39 @@
 #!/bin/bash
 
-Red='\033[0;31m'
-Green='\033[0;32m'
-NoColor='\033[0m'
+# Packages to install
+readonly PACMAN_PKGS=(wine winetricks wine-mono wine_gecko)
+readonly CLASSIC_SNAP_PKGS=(obsidian code clion bash-language-server)
+readonly SNAP_PKGS=(transmission)
+readonly AUR_PKGS=(libfido2 brave-browser)
+
+readonly Red='\033[0;31m'
+readonly Green='\033[0;32m'
+readonly NoColor='\033[0m'
 
 set -e
 
+log_error() {
+    echo -e "${Red}$1${NoColor}" >&2
+}
+
+log_info() {
+    echo -e "${Green}$1${NoColor}"
+}
+
 handle_error() {
-	echo -e "${Red}An error occured on line $1${NoColor}" >&2
+	log_error "An error occured on line $1"
 	exit 1
 }
 
 trap 'handle_error $LINENO' ERR
 
 setup_git() {
+	configure_git=n
+    read -p "Would you like to configure git with an SSH key? [y/n]:" configure_git
+    if [[ "$configure_git" != "y" ]]; then
+		return
+    fi
+
 	local name=""
 	local email=""
 	read -p "Your name: " name
@@ -21,12 +41,14 @@ setup_git() {
 
 	ssh-keygen -t ed25519 -C "$email"
 
-	echo -e "${Green}An ssh key has been generated.${NoColor}"
+	log_info "An ssh key has been generated."
 
 	# Git config
 	git config --global user.name "$name"
 	git config --global user.email "$email"
 }
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 setup_gnome() {
 	# Fonts
@@ -66,81 +88,107 @@ setup_gnome() {
 
 	# Copy an image
 	mkdir -p "$shared_img_folder"
-	script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-	cp ${script_dir}/background/wallpaper_space_velvet.jpg ${shared_img_path}
+	cp ${SCRIPT_DIR}/background/wallpaper_space_velvet.jpg ${shared_img_path}
 
 	dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
 	dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
 	dconf write /org/gnome/desktop/screensaver/picture-uri "'file:///${shared_img_path}'"
 
-	echo -e "${Green}GNOME Configuration has finished.${NoColor}"
+	log_info "GNOME Configuration has finished."
 }
 
-# Packages to install
-pacman_pkgs=(wine winetricks wine-mono wine_gecko)
-classic_snap_pkgs=(obsidian code clion)
-snap_pkgs=(transmission)
-aur_pkgs=(libfido2 brave-browser)
+setup_kde() {
+	# Background image
+	wallpapers_folder="/home/${USER}/.local/share/background"
+	wallpaper_name="wallpaper_space_velvet.jpg"
+	wallpaper_path="${wallpapers_folder}/${wallpaper_name}"
 
-if [[ $USER == "root" ]]; then
-	echo -e "${Red}Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!${NoColor}"
-	exit 1
-fi
+	# Copy an image
+	mkdir -p "$wallpapers_folder"
+	cp ${SCRIPT_DIR}/background/${wallpaper_name} ${wallpaper_path}
 
-# Update the system
-sudo pacman -Syu
+config_script=$(cat <<EOF
+	var allDesktops = desktops();
+	for (i = 0; i < allDesktops.length; i++) {
+		d = allDesktops[i];
+		d.wallpaperPlugin = "org.kde.image";
+		d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");
+		d.writeConfig("Image", "file://${wallpaper_path}");
+	}
+EOF
+)
 
-# Enable snapd
-sudo pamac install base-devel snapd libpamac-snap-plugin
-sudo systemctl enable --now snapd.socket
-sudo ln -s -f /var/lib/snapd/snap /snap
-sudo systemctl enable --now snapd.apparmor
+	qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "${config_script}"
 
-# Ask for enabling the AUR packages
-echo -e "${Green}Please enable using AUR packages by opening Add/Remove Software." \
-	"\nNavigate to the Preferences page -> Third Party, and enable AUR support." \
-	"\nHit Enter when done.${NoColor}"
-read line > /dev/null
+	log_info "KDE Configuration has finished."
+}
 
-# Install packages
-sudo pacman -Syu --needed ${pacman_pkgs[@]}
+setup_packages() {
+	log_info "Updating system..."
+	sudo pacman -Syu
 
-for pkg in ${aur_pkgs[@]}; do
-	sudo pamac install $pkg
-done
+	log_info "Enabling snapd..."
+	sudo pamac install base-devel snapd libpamac-snap-plugin
+	sudo systemctl enable --now snapd.socket
+	sudo ln -s -f /var/lib/snapd/snap /snap
+	sudo systemctl enable --now snapd.apparmor
 
-for pkg in ${classic_snap_pkgs[@]}; do
-	sudo snap install $pkg --classic
-done
+	# Ask for enabling the AUR packages
+    log_info "Please enable AUR packages in Add/Remove Software."
+    log_info "Navigate to Preferences -> Third Party, and enable AUR support."
+	read -p "Press Enter when done..."
 
-for pkg in ${snap_pkgs[@]}; do
-    sudo snap install $pkg
-done
+	# Install packages
+	sudo pacman -Syu --needed ${PACMAN_PKGS[@]}
 
-echo -e "${Green}Packages has been successfully installed.${NoColor}"
+	for pkg in ${AUR_PKGS[@]}; do
+		sudo pamac build "$pkg"
+	done
 
-# SSH configuration
-configure_git=n
-read -p "Would you like to configure git with an SSH key? [y/n]:" configure_git
-if [[ "$configure_git" == "y" ]]; then
+	for pkg in ${CLASSIC_SNAP_PKGS[@]}; do
+		sudo snap install "$pkg" --classic
+	done
+
+	for pkg in ${SNAP_PKGS[@]}; do
+		sudo snap install "$pkg"
+	done
+
+	log_info "Packages has been successfully installed."
+}
+
+setup_gui() {
+
+    log_info "Configuring the desktop environment"
+    if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
+        log_info "GNOME desktop detected."
+        setup_gnome
+
+    elif [[ "$XDG_CURRENT_DESKTOP" == "KDE" ]]; then
+        log_info "KDE desktop detected."
+        setup_kde
+
+    else
+        log_error "Unknown desktop environment. Skipping."
+    fi
+
+}
+
+main() {
+
+    if [[ $USER == "root" ]]; then
+        log_error "Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!"
+        exit 1
+    fi
+
+    setup_packages
+
 	setup_git
-fi
 
-# Desktop environment configuration
-echo -e "${Green}Configuring the desktop environment${NC}"
-if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
-    echo -e "${Green}GNOME desktop detected."
+	setup_gui
 	
-	setup_gnome
+    log_info "Setup is completed."\
+        "\nDon't forget to add your SSH keys where needed!" \
+        "\nTo configure wine, visit https://linuxconfig.org/install-wine-on-manjaro"
+}
 
-elif [[ "$XDG_CURRENT_DESKTOP" == "KDE" ]]; then
-    echo -e "${Green}KDE desktop detected.${NoColor}"
-
-	echo -e "${Green}Nothing to configure.${NoColor}"
-else
-    echo -e "${Red}Unknown desktop environment. Skipping.${NoColor}"
-fi
-
-echo -e "${Green}Setup is completed."\
-	"\nDon't forget to add your SSH keys where needed!" \
-	"\nTo configure wine, visit https://linuxconfig.org/install-wine-on-manjaro${NC}"
+main
