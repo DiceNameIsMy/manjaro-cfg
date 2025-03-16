@@ -4,7 +4,12 @@
 readonly PACMAN_PKGS=(wine winetricks wine-mono wine_gecko shellcheck)
 readonly CLASSIC_SNAP_PKGS=(obsidian code clion bash-language-server)
 readonly SNAP_PKGS=(transmission)
-readonly AUR_PKGS=(libfido2 brave-browser)
+readonly AUR_PKGS=(
+	libfido2 
+	brave-browser 
+	ydotool  # Used to simulate keyboard input for dictation
+	nerd-dictation-git  # Dictation service
+)
 
 readonly Red='\033[0;31m'
 readonly Green='\033[0;32m'
@@ -48,7 +53,7 @@ setup_packages() {
 	sudo pacman -Syu --needed "${PACMAN_PKGS[@]}"
 
 	for pkg in "${AUR_PKGS[@]}"; do
-		sudo pamac build "$pkg"
+		sudo pamac install "$pkg"
 	done
 
 	for pkg in "${CLASSIC_SNAP_PKGS[@]}"; do
@@ -173,6 +178,31 @@ setup_gui() {
         log_error "Unknown desktop environment. Skipping."
     fi
 
+}
+
+setup_dictation() {
+	log_info "Setting up dictation service..."
+
+	# Copy ydotools.service to /etc/systemd/system
+	sudo cp "${SCRIPT_DIR}/ydotoold.service" /etc/systemd/system/ydotoold.service
+
+	# Enable and start the service
+	sudo systemctl daemon-reload
+	sudo systemctl enable ydotoold.service
+	sudo systemctl start ydotoold.service
+
+	# Install vosk speech recognition model
+	wget https://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.15.zip
+	unzip vosk-model-small-en-us-0.15.zip
+	rm vosk-model-small-en-us-0.15.zip
+
+	mkdir -p ~/.config/nerd-dictation
+	mv vosk-model-small-en-us-0.15 ~/.config/nerd-dictation/model
+
+	mv "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" ~/.local/bin/
+	chmod +x ~/.local/bin/dictation-begin.sh ~/.local/bin/dictation-end.sh
+
+	log_info "Dictation service is ready. You can add appropriate shortcuts for ~/.local/bin/dictation-begin.sh and ~/.local/bin/dictation-end.sh"
 }
 
 main() {
