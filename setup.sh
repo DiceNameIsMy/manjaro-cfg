@@ -192,12 +192,12 @@ setup_dictation() {
 	sudo systemctl start ydotoold.service
 
 	# Install vosk speech recognition model
-	wget https://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.15.zip
-	unzip vosk-model-small-en-us-0.15.zip
-	rm vosk-model-small-en-us-0.15.zip
+	wget https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip
+	unzip vosk-model-en-us-0.22-lgraph.zip
+	rm vosk-model-en-us-0.22-lgraph.zip
 
 	mkdir -p ~/.config/nerd-dictation
-	mv vosk-model-small-en-us-0.15 ~/.config/nerd-dictation/model
+	mv vosk-model-en-us-0.22-lgraph ~/.config/nerd-dictation/model
 
 	mv "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" ~/.local/bin/
 	chmod +x ~/.local/bin/dictation-begin.sh ~/.local/bin/dictation-end.sh
