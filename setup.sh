@@ -197,6 +197,7 @@ setup_dictation() {
 	rm vosk-model-en-us-0.22-lgraph.zip
 
 	mkdir -p ~/.config/nerd-dictation
+	rm -rf ~/.config/nerd-dictation/model  # Remove old model if exists
 	mv vosk-model-en-us-0.22-lgraph ~/.config/nerd-dictation/model
 
 	mv "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" ~/.local/bin/
