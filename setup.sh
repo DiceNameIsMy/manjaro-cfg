@@ -208,6 +208,11 @@ setup_dictation() {
 
 main() {
 
+	# TODO
+	# - Install qbittorent
+	# - jetbrains toolbox
+	# - Enable configuration of multi user git auth: https://www.perplexity.ai/search/manjaro-vscode-terminal-looks-JrR6hOK6SWGP32Kcdnzigw
+
     if [[ $USER == "root" ]]; then
         log_error "Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!"
         exit 1
