@@ -2,10 +2,6 @@
 
 A script for setting up the Manjaro Linux on my laptop.
 
-### TODOs
+To prepare an installation image in the USB, enlist your disks via `sudo fdisk -l`, find the path of your USB, and run this command:
 
-- Allow using CLI arguments to skip the ssh key configuration
-- Ask to reboot the computer to that snap will be properly configured
-- cat the ssh key for a user to copy to GitHub
-- I could add a script to change the wallpaper from time to time
-- Keybinding to change language
+> sudo dd bs=32M if=/path/to/manjaro.iso of=/dev/sdX status=progress oflag=sync
