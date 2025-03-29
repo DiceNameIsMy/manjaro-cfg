@@ -218,6 +218,8 @@ main() {
 	setup_git
 
 	setup_gui
+
+	setup_dictation
 	
     log_info "Setup is completed."\
         "\nDon't forget to add your SSH keys where needed!" \
