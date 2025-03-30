@@ -1,12 +1,17 @@
 #!/bin/bash
 
 # Packages to install
-readonly PACMAN_PKGS=(wine winetricks wine-mono wine_gecko shellcheck)
-readonly CLASSIC_SNAP_PKGS=(obsidian code clion bash-language-server)
-readonly SNAP_PKGS=(transmission)
+readonly PACMAN_PKGS=(
+	wine winetricks wine-mono wine_gecko
+	shellcheck
+	qbittorrent
+)
+readonly CLASSIC_SNAP_PKGS=(obsidian code bash-language-server)
+readonly SNAP_PKGS=()
 readonly AUR_PKGS=(
 	libfido2 
 	brave-browser 
+	jetbrains-toolbox
 	ydotool  # Used to simulate keyboard input for dictation
 	nerd-dictation-git  # Dictation service
 )
@@ -35,7 +40,7 @@ handle_error() {
 trap 'handle_error $LINENO' ERR
 
 setup_packages() {
-	log_info "Updating system..."
+	log_info "Updating the system..."
 	sudo pacman -Syu
 
 	log_info "Enabling snapd..."
@@ -47,7 +52,8 @@ setup_packages() {
 	# Ask for enabling the AUR packages
     log_info "Please enable AUR packages in Add/Remove Software."
     log_info "Navigate to Preferences -> Third Party, and enable AUR support."
-	read -pr "Press Enter when done..."
+	log_info "Press any key to continue..."
+	read -r
 
 	# Install packages
 	sudo pacman -Syu --needed "${PACMAN_PKGS[@]}"
@@ -69,15 +75,15 @@ setup_packages() {
 
 setup_git() {
 	configure_git=n
-    read -pr "Would you like to configure git with an SSH key? [y/n]:" configure_git
+    read -r -p "Would you like to configure git with an SSH key? [y/n]:" configure_git
     if [[ "$configure_git" != "y" ]]; then
 		return
     fi
 
 	local name=""
 	local email=""
-	read -pr "Your name: " name
-	read -pr "Your email: " email
+	read -r -p "Your name: " name
+	read -r -p "Your email: " email
 
 	ssh-keygen -t ed25519 -C "$email"
 
@@ -158,7 +164,7 @@ config_script=$(cat <<EOF
 EOF
 )
 
-	qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "${config_script}"
+	qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "${config_script}"
 
 	log_info "KDE Configuration has finished."
 }
@@ -183,36 +189,58 @@ setup_gui() {
 setup_dictation() {
 	log_info "Setting up dictation service..."
 
+	# Add user to the `input` group so that he can use ydotool without sudo
+	sudo usermod -aG input "$USER"
+
 	# Copy ydotools.service to /etc/systemd/system
 	sudo cp "${SCRIPT_DIR}/ydotoold.service" /etc/systemd/system/ydotoold.service
 
-	# Enable and start the service
+	# Enable and start the ydotools service
 	sudo systemctl daemon-reload
 	sudo systemctl enable ydotoold.service
 	sudo systemctl start ydotoold.service
 
-	# Install vosk speech recognition model
-	wget https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip
-	unzip vosk-model-en-us-0.22-lgraph.zip
-	rm vosk-model-en-us-0.22-lgraph.zip
+	# Install a voice recognition model
+	local model_folder="$HOME/.config/nerd-dictation/model"
 
-	mkdir -p ~/.config/nerd-dictation
-	rm -rf ~/.config/nerd-dictation/model  # Remove old model if exists
-	mv vosk-model-en-us-0.22-lgraph ~/.config/nerd-dictation/model
+	if [ -e "$model_folder" ]; then
+		log_info "Nerd dictation model is already installed. Skipping the download."
+	else
+		log_info "Installing the nerd dictation model..."
 
-	mv "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" ~/.local/bin/
-	chmod +x ~/.local/bin/dictation-begin.sh ~/.local/bin/dictation-end.sh
+		wget https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip
+		unzip vosk-model-en-us-0.22-lgraph.zip
+		rm vosk-model-en-us-0.22-lgraph.zip
 
-	log_info "Dictation service is ready. You can add appropriate shortcuts for ~/.local/bin/dictation-begin.sh and ~/.local/bin/dictation-end.sh"
+		mkdir -p "$model_folder"
+		mv vosk-model-en-us-0.22-lgraph "$model_folder"
+
+		# Add scrips to start/end dictatation
+		local scripts_dir="$HOME/.local/bin"
+		mkdir -p "$scripts_dir"
+		cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$scripts_dir"
+		chmod +x "$scripts_dir/dictation-begin.sh" "$scripts_dir/dictation-end.sh"
+
+		cat shortcuts >> "$HOME/.config/kglobalshortcutsrc"
+	fi
+
+	# Add scrips to start/end dictatation
+	local scripts_dir="$HOME/.local/bin"
+	mkdir -p "$scripts_dir"
+	cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$scripts_dir"
+	chmod +x "$scripts_dir/dictation-begin.sh" "$scripts_dir/dictation-end.sh"
+
+	cat "$SCRIPT_DIR/shortcuts" >> "$HOME/.config/kglobalshortcutsrc"
+
+	log_info "Dictation service is ready."
+	log_info "You can add appropriate shortcuts for $scripts_dir/dictation-begin.sh and $scripts_dir/dictation-end.sh"
 }
 
 main() {
 
 	# TODO
-	# - Install qbittorent
 	# - jetbrains toolbox
 	# - Enable configuration of multi user git auth: https://www.perplexity.ai/search/manjaro-vscode-terminal-looks-JrR6hOK6SWGP32Kcdnzigw
-	# - Ctrl+Shift+T => open terminal
 
     if [[ $USER == "root" ]]; then
         log_error "Do not run this script with sudo, as it might misconfigure user specific stuff like ssh keys!"
@@ -227,9 +255,9 @@ main() {
 
 	setup_dictation
 	
-    log_info "Setup is completed."\
-        "\nDon't forget to add your SSH keys where needed!" \
-        "\nTo configure wine, visit https://linuxconfig.org/install-wine-on-manjaro"
+    log_info "Setup is completed."
+	log_info "Don't forget to add your SSH keys where needed!"
+	log_info "To configure wine, visit https://linuxconfig.org/install-wine-on-manjaro"
 }
 
 main

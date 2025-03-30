@@ -1,0 +1,5 @@
+[services][net.local.dictation-begin.sh.desktop]
+_launch=Ctrl+Shift+B
+
+[services][net.local.dictation-end.sh.desktop]
+_launch=Ctrl+Shift+E
