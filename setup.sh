@@ -6,14 +6,20 @@ readonly PACMAN_PKGS=(
 	shellcheck
 	qbittorrent
 )
-readonly CLASSIC_SNAP_PKGS=(obsidian code bash-language-server)
+readonly CLASSIC_SNAP_PKGS=(
+	obsidian 
+	code 
+	bash-language-server
+)
 readonly SNAP_PKGS=()
 readonly AUR_PKGS=(
-	libfido2 
+	libfido2  # I don't remember why I need this
+	docker
 	brave-browser 
 	jetbrains-toolbox
 	ydotool  # Used to simulate keyboard input for dictation
 	nerd-dictation-git  # Dictation service
+	chntpw  # Connect to headphones on both linux & windows
 )
 
 readonly Red='\033[0;31m'
@@ -231,7 +237,6 @@ setup_dictation() {
 main() {
 
 	# TODO
-	# - jetbrains toolbox
 	# - Enable configuration of multi user git auth: https://www.perplexity.ai/search/manjaro-vscode-terminal-looks-JrR6hOK6SWGP32Kcdnzigw
 
     if [[ $USER == "root" ]]; then
