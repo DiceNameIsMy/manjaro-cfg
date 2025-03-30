@@ -252,8 +252,9 @@ main() {
 	setup_dictation
 	
     log_info "Setup is completed."
-	log_info "Don't forget to add your SSH keys where needed!"
-	log_info "To configure wine, visit https://linuxconfig.org/install-wine-on-manjaro"
+	log_info "1) Don't forget to add your SSH keys where needed!"
+	log_info "2) To configure wine, visit https://linuxconfig.org/install-wine-on-manjaro"
+	log_info "3) To configure bluetooth devices to work on both OS's, visit https://github.com/spxak1/weywot/blob/main/guides/bt_dualboot.md"
 }
 
 main
