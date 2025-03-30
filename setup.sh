@@ -231,7 +231,6 @@ setup_dictation() {
 	fi
 
 	log_info "Dictation service is ready."
-	log_info "You can add appropriate shortcuts for $scripts_dir/dictation-begin.sh and $scripts_dir/dictation-end.sh"
 }
 
 main() {
