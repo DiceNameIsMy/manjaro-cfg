@@ -224,14 +224,6 @@ setup_dictation() {
 		cat shortcuts >> "$HOME/.config/kglobalshortcutsrc"
 	fi
 
-	# Add scrips to start/end dictatation
-	local scripts_dir="$HOME/.local/bin"
-	mkdir -p "$scripts_dir"
-	cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$scripts_dir"
-	chmod +x "$scripts_dir/dictation-begin.sh" "$scripts_dir/dictation-end.sh"
-
-	cat "$SCRIPT_DIR/shortcuts" >> "$HOME/.config/kglobalshortcutsrc"
-
 	log_info "Dictation service is ready."
 	log_info "You can add appropriate shortcuts for $scripts_dir/dictation-begin.sh and $scripts_dir/dictation-end.sh"
 }
