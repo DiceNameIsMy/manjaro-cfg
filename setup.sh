@@ -250,6 +250,11 @@ main() {
 	setup_gui
 
 	setup_dictation
+
+	# Configure docker
+	sudo usermod -aG docker "$USER"
+	sudo systemctl enable docker.service
+	sudo systemctl start docker.service
 	
     log_info "Setup is completed."
 	log_info "1) Don't forget to add your SSH keys where needed!"
