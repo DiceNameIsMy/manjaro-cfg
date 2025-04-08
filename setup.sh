@@ -227,7 +227,7 @@ setup_dictation() {
 		cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$scripts_dir"
 		chmod +x "$scripts_dir/dictation-begin.sh" "$scripts_dir/dictation-end.sh"
 
-		cat shortcuts >> "$HOME/.config/kglobalshortcutsrc"
+		cat "$scripts_dir/shortcuts" >> "$HOME/.config/kglobalshortcutsrc"
 	fi
 
 	log_info "Dictation service is ready."
