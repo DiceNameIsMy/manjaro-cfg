@@ -141,13 +141,13 @@ setup_gnome() {
 	dconf write /org/gnome/desktop/peripherals/touchpad/tap-to-click "true"
 
 	# Background image
-	shared_img_folder="/home/${USER}/.local/share/background"
+	shared_img_folder="/home/${USER}/.local/share/backgrounds"
 	shared_img_name="wallpaper_space_velvet.jpg"
 	shared_img_path="${shared_img_folder}/${shared_img_name}"
 
-	# Copy an image
+	# Copy images
 	mkdir -p "$shared_img_folder"
-	cp "${SCRIPT_DIR}"/background/wallpaper_space_velvet.jpg "${shared_img_path}"
+	cp "${SCRIPT_DIR}"/backgrounds/ "${shared_img_path}"
 
 	dconf write /org/gnome/desktop/background/picture-uri "'file:///${shared_img_path}'"
 	dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///${shared_img_path}'"
@@ -157,13 +157,14 @@ setup_gnome() {
 }
 
 setup_kde() {
-	wallpapers_folder="/home/${USER}/.local/share/background"
+	wallpapers_folder="/home/${USER}/.local/share/backgrounds"
 	wallpaper_name="wallpaper_space_velvet.jpg"
 	wallpaper_path="${wallpapers_folder}/${wallpaper_name}"
 
 	# Copy an image
 	mkdir -p "$wallpapers_folder"
-	cp "${SCRIPT_DIR}"/background/${wallpaper_name} "${wallpaper_path}"
+	cp "${SCRIPT_DIR}"/backgrounds/${wallpaper_name} "${wallpaper_path}"
+	cp "${SCRIPT_DIR}"/backgrounds/black.png "${wallpaper_path}"
 
 config_script=$(cat <<EOF
 	var allDesktops = desktops();
