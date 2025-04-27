@@ -22,6 +22,10 @@ readonly AUR_PKGS=(
 	chntpw  # Connect to headphones on both linux & windows
 )
 
+readonly GNOME_PACMAN_PKGS=(
+	gnome-terminal
+)
+
 readonly Red='\033[0;31m'
 readonly Green='\033[0;32m'
 readonly NoColor='\033[0m'
@@ -103,6 +107,8 @@ setup_git() {
 
 setup_gnome() {
 	# WARNING: Might be outdated
+
+	sudo pacman -Syu --needed "${GNOME_PACMAN_PKGS[@]}"
 
 	# Fonts
 	sudo pamac install ttf-jetbrains-mono-nerd
@@ -222,12 +228,12 @@ setup_dictation() {
 		mv vosk-model-en-us-0.22-lgraph "$model_folder"
 
 		# Add scrips to start/end dictatation
-		local scripts_dir="$HOME/.local/bin"
-		mkdir -p "$scripts_dir"
-		cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$scripts_dir"
-		chmod +x "$scripts_dir/dictation-begin.sh" "$scripts_dir/dictation-end.sh"
+		local end_scripts_dir="$HOME/.local/bin"
+		mkdir -p "$end_scripts_dir"
+		cp "${SCRIPT_DIR}/dictation-begin.sh" "${SCRIPT_DIR}/dictation-end.sh" "$end_scripts_dir"
+		chmod +x "$SCRIPT_DIR/dictation-begin.sh" "$SCRIPT_DIR/dictation-end.sh"
 
-		cat "$scripts_dir/shortcuts" >> "$HOME/.config/kglobalshortcutsrc"
+		cat "$SCRIPT_DIR/shortcuts" >> "$HOME/.config/kglobalshortcutsrc"
 	fi
 
 	log_info "Dictation service is ready."
